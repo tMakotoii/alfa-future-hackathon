@@ -1,0 +1,19 @@
+# Идентификаторы моделей в API организаторов; при несовпадении поменять здесь.
+purposes:
+  classify:   {model: gemma-4-26b-a4b, fallback: qwen3.6-35b-a3b}
+  check:      {model: gemma-4-26b-a4b, fallback: qwen3.6-35b-a3b}
+  plan:       {model: qwen3.6-35b-a3b, fallback: gemma-4-26b-a4b}
+  chat:       {model: qwen3.6-35b-a3b, fallback: gemma-4-26b-a4b}
+  synthesize: {model: glm-5.3-flash, fallback: qwen3.6-35b-a3b}
+  sectors:    {model: deepseek-v4.1-flash, fallback: qwen3.6-35b-a3b}
+# ₽ за 1000 токенов. TODO: прайс организаторов (сейчас — консервативная оценка)
+prices_rub_per_1k:
+  gemma-4-26b-a4b:     {in: 0.02, out: 0.06}
+  qwen3.6-35b-a3b:     {in: 0.03, out: 0.10}
+  glm-5.3-flash:       {in: 0.05, out: 0.20}
+  deepseek-v4.1-flash: {in: 0.03, out: 0.10}
+  kimi-k2.6:           {in: 0.08, out: 0.30}
+timeout_s: 60
+retries: 2
+backoff_s: [1, 2]
+response_format_json: true
