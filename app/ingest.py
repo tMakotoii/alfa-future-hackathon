@@ -1,11 +1,13 @@
 """CSV кейса → таблицы companies / groups (+profile) / counterparties."""
 import json
+import logging
 import re
 from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
 
+log = logging.getLogger(__name__)
 TARGET_REVENUE = 15e9
 
 DEMO_GROUPS = {
@@ -35,8 +37,14 @@ def _nn(v):
     return None if pd.isna(v) else v
 
 
+def _csv(data_dir: Path, name: str) -> Path:
+    """Полные данные кейса — .csv, демо-срез (scripts/make_demo_slice.py) — .csv.gz."""
+    plain = data_dir / f"{name}.csv"
+    return plain if plain.exists() else data_dir / f"{name}.csv.gz"
+
+
 def _load_companies(data_dir: Path) -> tuple[pd.DataFrame, pd.Series]:
-    raw = pd.read_csv(data_dir / "df_Uid_data_hack.csv", sep=";", dtype={"MAINOKVED_CODE": str})
+    raw = pd.read_csv(_csv(data_dir, "df_Uid_data_hack"), sep=";", dtype={"MAINOKVED_CODE": str})
     df = raw.rename(columns=COLUMNS)[list(COLUMNS.values())]
     dups = df[df.duplicated("uid")].groupby("group_id").size()
     df = df.drop_duplicates("uid").copy()
@@ -145,7 +153,7 @@ def ingest_clients(conn, data_dir: Path) -> None:
     names = {gid: DEMO_GROUPS.get(gid, f"Группа №{i + 1}") for i, gid in enumerate(targets.index)}
 
     # платежи: только с участием целевых групп, без внутригрупповых
-    pay = pd.read_csv(data_dir / "df_Uid_payment_hack.csv", sep=";")
+    pay = pd.read_csv(_csv(data_dir, "df_Uid_payment_hack"), sep=";")
     grp, okv = df.set_index("uid").group_id, df.set_index("uid").okved2
     pay["pg"], pay["bg"] = pay.PAYER.map(grp), pay.BENEFICIARY.map(grp)
     pay = pay[pay.pg != pay.bg]
@@ -258,5 +266,8 @@ def ensure_ingested(conn, data_root: Path = Path("data")) -> None:
         return
     clients = data_root / "Классы данных для решения задачи"
     if not (clients / "df_Uid_data_hack.csv").exists():
-        raise RuntimeError("Положите данные кейса в data/Классы данных для решения задачи/")
+        clients = data_root / "demo"  # нет полных CSV — демо-срез из репозитория
+        if not (clients / "df_Uid_data_hack.csv.gz").exists():
+            raise RuntimeError("Положите данные кейса в data/Классы данных для решения задачи/")
+        log.warning("Полных данных кейса нет — загружаю демо-срез data/demo (3 демо-группы)")
     ingest_clients(conn, clients)

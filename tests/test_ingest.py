@@ -41,3 +41,20 @@ def test_product_revenue_share(db):
     assert prods["leasing"]["revenue_share"] == 1.0
     assert prods["credit"]["revenue_share"] == round(8 / 18, 4)
     assert prods["fts"]["revenue_share"] == 1.0
+
+
+def test_demo_slice_fallback_matches_full_data(tmp_path, real_db):
+    import json
+    import shutil
+    from app.db import connect, init_schema
+    from app.ingest import DEMO_GROUPS, ensure_ingested
+    root = tmp_path / "data"
+    shutil.copytree("data/demo", root / "demo")
+    shutil.copytree("data/ocr", root / "ocr", ignore=shutil.ignore_patterns(".cache"))
+    conn = connect(str(tmp_path / "d.db"))
+    init_schema(conn)
+    ensure_ingested(conn, root)  # полных CSV нет — берётся data/demo
+    for gid in DEMO_GROUPS:
+        demo, full = (json.loads(c.execute("select profile from groups where group_id=?", (gid,)).fetchone()[0])
+                      for c in (conn, real_db))
+        assert demo["features"] == full["features"], gid
