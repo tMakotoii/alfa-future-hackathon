@@ -1,0 +1,9 @@
+# Используется только содержимое RSS (заголовок, лид/текст, ссылка, дата) с атрибуцией источника.
+user_agent: "Mozilla/5.0 (AlfaInsight hackathon prototype)"
+interval_min: 30
+snapshot_min_recent: 20
+sources:
+  - {id: cbr, name: "Банк России", url: "https://www.cbr.ru/rss/RssPress"}
+  - {id: interfax, name: "Интерфакс", url: "https://www.interfax.ru/rss.asp"}
+  - {id: rbc, name: "РБК", url: "https://rssexport.rbc.ru/rbcnews/news/30/full.rss"}
+  - {id: finmarket, name: "Финмаркет", url: "https://www.finmarket.ru/rss/mainnews.asp"}
