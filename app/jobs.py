@@ -18,7 +18,8 @@ log = logging.getLogger(__name__)
 _lock = threading.Lock()
 _inflight: dict[tuple[str, str], str] = {}  # (group_id, news_id) -> trace_id
 _owner: dict[str, str] = {}  # trace_id -> group_id для ещё не сохранённых трасс
-_pool = ThreadPoolExecutor(max_workers=2)
+_user_pool = ThreadPoolExecutor(max_workers=2)  # запросы пользователей не ждут фоновый предрасчёт
+_bg_pool = ThreadPoolExecutor(max_workers=1)
 
 
 def is_running(trace_id: str) -> bool:
@@ -47,8 +48,8 @@ def _run(conn_factory, llm_factory, group_id: str, news_id: str, trace_id: str) 
         conn.close()
 
 
-def ensure_insight(conn_factory: Callable, llm_factory: Callable, group_id: str,
-                   news_id: str) -> tuple[Literal["ready", "running"], str]:
+def ensure_insight(conn_factory: Callable, llm_factory: Callable, group_id: str, news_id: str,
+                   background: bool = False) -> tuple[Literal["ready", "running"], str]:
     with _lock:
         if (group_id, news_id) in _inflight:
             return "running", _inflight[(group_id, news_id)]
@@ -60,7 +61,7 @@ def ensure_insight(conn_factory: Callable, llm_factory: Callable, group_id: str,
         trace_id = new_trace_id()
         _inflight[(group_id, news_id)] = trace_id
         _owner[trace_id] = group_id
-    _pool.submit(_run, conn_factory, llm_factory, group_id, news_id, trace_id)
+    (_bg_pool if background else _user_pool).submit(_run, conn_factory, llm_factory, group_id, news_id, trace_id)
     return "running", trace_id
 
 
@@ -87,7 +88,7 @@ def background_cycle(conn_factory: Callable, llm_factory: Callable, sources_cfg:
             return
         for group_id in DEMO_GROUPS:
             for item in rank_feed(conn, group_id, "CFO")[:5]:
-                ensure_insight(conn_factory, llm_factory, group_id, item["news_id"])
+                ensure_insight(conn_factory, llm_factory, group_id, item["news_id"], background=True)
     finally:
         conn.close()
 

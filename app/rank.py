@@ -151,18 +151,20 @@ def rank_feed(conn, group_id: str, role: str, days: int = 7, now: datetime | Non
     if not row or not row[0]:
         return []
     profile = json.loads(row[0])
-    rows = conn.execute("select news_id, title, source, published_at, cluster_id, classification, origin from news "
+    rows = conn.execute("select news_id, title, source, published_at, cluster_id, classification, origin, owner_group from news "
                         "where classification is not null and published_at >= ?",
                         ((now - timedelta(days=days)).isoformat(),)).fetchall()
     items, seen_clusters = [], set()
     for r in sorted(rows, key=lambda r: r["published_at"], reverse=True):
         cls = json.loads(r["classification"])
+        if r["owner_group"] and r["owner_group"] != group_id:  # ручная новость видна только своей группе
+            continue
         if not cls.get("is_business") or r["cluster_id"] in seen_clusters:
             continue
         seen_clusters.add(r["cluster_id"])
         pub = datetime.fromisoformat(r["published_at"])
         s = score_news(cls, pub, profile, role, cfg, sectors, bank_hit(conn, cls, cfg), now)
-        if s.value < cfg["min_score"] and r["origin"] != "manual":  # добавленное пользователем показываем всегда
+        if s.value < cfg["min_score"] and r["owner_group"] != group_id:  # добавленное пользователем показываем всегда
             continue
         items.append({"news_id": r["news_id"], "title": r["title"], "source": r["source"],
                       "published_at": r["published_at"], "score": s.value,

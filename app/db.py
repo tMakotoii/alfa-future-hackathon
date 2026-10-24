@@ -31,7 +31,7 @@ end;
 
 create table if not exists news (
     news_id text primary key, source text, url text, published_at text, title text, body text,
-    hash text unique, cluster_id text, origin text, classification text
+    hash text unique, cluster_id text, origin text, classification text, owner_group text
 );
 create virtual table if not exists news_fts using fts5(
     title, body, content='news', content_rowid='rowid', tokenize='unicode61'
@@ -77,4 +77,7 @@ def connect(path: str | None = None) -> sqlite3.Connection:
 
 def init_schema(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    cols = {r[1] for r in conn.execute("pragma table_info(news)")}
+    if "owner_group" not in cols:  # миграция БД, созданных до появления колонки
+        conn.execute("alter table news add column owner_group text")
     conn.commit()

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api, ROLE_LABEL, type DemoGroup, type Role } from '../api'
 import { useSession } from '../session'
 
@@ -7,11 +7,14 @@ export default function ContextSwitcher() {
   const { me, setMe, refresh } = useSession()
   const [groups, setGroups] = useState<DemoGroup[]>([])
   const nav = useNavigate()
+  const loc = useLocation()
   useEffect(() => { if (me?.demo_mode) api.demoGroups().then(setGroups).catch(() => {}) }, [me?.demo_mode])
   if (!me) return null
 
   const switchTo = async (body: { group_id?: string; role?: Role }) => {
     await api.demoSwitch(body)
+    // карточка инсайта принадлежит прежней группе — после смены клиента возвращаемся в ленту
+    if (body.group_id && loc.pathname.startsWith('/insight/')) nav('/feed')
     await refresh()
   }
   const isDemo = (g: DemoGroup) => g.display_name.startsWith('Группа «')

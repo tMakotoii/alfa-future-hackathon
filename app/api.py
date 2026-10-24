@@ -170,14 +170,20 @@ def _steps(conn, trace_id: str, after: int = -1) -> list[dict]:
     return [{**dict(r), "input": json.loads(r["input"]), "output": json.loads(r["output"])} for r in rows]
 
 
+def _visible_news(conn, news_id: str, group_id: str):
+    row = conn.execute("select * from news where news_id=?", (news_id,)).fetchone()
+    if not row or (row["owner_group"] and row["owner_group"] != group_id):
+        raise HTTPException(404, "Новость не найдена")
+    return row
+
+
 def _sse(event: str, data) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False, default=str)}\n\n"
 
 
 @router.get("/insights/{news_id}")
 def get_insight(news_id: str, user=Depends(current_user), conn=Depends(get_conn), make_llm=Depends(llm_factory)):
-    if not conn.execute("select 1 from news where news_id=?", (news_id,)).fetchone():
-        raise HTTPException(404, "Новость не найдена")
+    _visible_news(conn, news_id, user["group_id"])
     status, ref = jobs.ensure_insight(connect, make_llm, user["group_id"], news_id)
     if status == "running":
         return JSONResponse({"trace_id": ref}, status_code=202)
@@ -273,7 +279,7 @@ def manual_news(body: ManualNewsIn, user=Depends(current_user), conn=Depends(get
     if not (body.text or "").strip() and not body.url:
         raise HTTPException(422, "Укажите текст новости или URL")
     try:
-        news_id = add_manual(conn, text=body.text, url=body.url)
+        news_id = add_manual(conn, text=body.text, url=body.url, owner_group=user["group_id"])
     except ValueError as e:
         raise HTTPException(422, str(e))
     classified = True
@@ -291,11 +297,8 @@ def manual_news(body: ManualNewsIn, user=Depends(current_user), conn=Depends(get
 
 @router.get("/sources/news/{news_id}")
 def source_news(news_id: str, user=Depends(current_user), conn=Depends(get_conn)):
-    row = conn.execute("select news_id, source, url, published_at, title, body, origin, classification from news "
-                       "where news_id=?", (news_id,)).fetchone()
-    if not row:
-        raise HTTPException(404, "Новость не найдена")
-    return {**dict(row), "classification": json.loads(row["classification"]) if row["classification"] else None}
+    row = _visible_news(conn, news_id, user["group_id"])
+    return {**{k: row[k] for k in ("news_id", "source", "url", "published_at", "title", "body", "origin")}, "classification": json.loads(row["classification"]) if row["classification"] else None}
 
 
 @router.get("/sources/bank/{doc_id}/{page}")

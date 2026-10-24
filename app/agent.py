@@ -57,7 +57,8 @@ class Ctx:
 
     def aliases(self) -> dict[str, str]:
         uids = sorted(set(re.findall(r"U_\d+", json.dumps([g["payload"] for g in self.gathered]))))
-        return {self.group_id: self.profile["display_name"], **{u: f"Компания-{i + 1}" for i, u in enumerate(uids)}}
+        # группа и так видна модели под публичным псевдонимом; маскируем только идентификаторы компаний
+        return {u: f"Компания-{i + 1}" for i, u in enumerate(uids)}
 
     def llm_call(self, purpose: str, messages: list[dict], name: str | None = None):
         t0 = time.monotonic()
@@ -280,6 +281,7 @@ def run_chat(conn, llm, insight_id: str, login: str, question: str, trace_id: st
                                ensure_ascii=False)[:4000]
     conn.execute("insert into chat_messages(insight_id, login, role, content, trace_id) values (?,?,?,?,?)",
                  (insight_id, login, "user", json.dumps({"text": question}, ensure_ascii=False), trace_id))
+    conn.commit()  # не держим блокировку записи на время вызовов LLM
     plan = ctx.llm_call("plan", [{"role": "system", "content": prompts.fmt(prompts.PLAN_CHAT, catalog=catalog())},
                                  {"role": "user", "content": f"Инсайт: {insight_brief}\n\nВопрос: {q}"}], name="plan")
     steps = (plan.data or {}).get("steps", [])
@@ -287,7 +289,11 @@ def run_chat(conn, llm, insight_id: str, login: str, question: str, trace_id: st
     msgs = [{"role": "system", "content": prompts.fmt(prompts.CHAT)},
             {"role": "user", "content": f"Новость:\n{ctx.news_text()}\n\nИнсайт: {insight_brief}\n\n"
                                         f"Контекст:\n{ctx.context_text()}\n\nВопрос: {q}"}]
-    ans = ChatAnswer.model_validate(ctx.llm_call("chat", msgs).data or {"claims": []})
+    try:
+        ans = ChatAnswer.model_validate(ctx.llm_call("chat", msgs).data or {"claims": []})
+    except ValidationError as e:  # модель вернула не тот формат — пустой ответ вместо 500
+        ctx.trace.step("check", "check:schema", {}, {"error": str(e)[:500]})
+        ans = ChatAnswer(claims=[])
     sources = ctx.sources()
     problems = check_chat(ans, sources)
     ctx.trace.step("check", "check:code", {}, {"problems": [f"{p.field}: {p.code}" for p in problems]})

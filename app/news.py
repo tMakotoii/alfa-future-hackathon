@@ -127,12 +127,13 @@ def snapshot_line(item: NewsItem) -> str:
     return json.dumps(d, ensure_ascii=False)
 
 
-def add_manual(conn, text: str | None = None, url: str | None = None, client: httpx.Client | None = None) -> str:
+def add_manual(conn, text: str | None = None, url: str | None = None, client: httpx.Client | None = None,
+               owner_group: str | None = None) -> str:
     if url:
         try:
             r = (client or httpx.Client(timeout=15, follow_redirects=True)).get(url)
             r.raise_for_status()
-        except httpx.HTTPError as e:
+        except (httpx.HTTPError, httpx.InvalidURL, ValueError) as e:
             raise ValueError(f"Не удалось загрузить URL: {e}") from e
         m = re.search(r"<title[^>]*>(.*?)</title>", r.text, re.S | re.I)
         title = clean_html(m.group(1)) if m else ""
@@ -146,6 +147,8 @@ def add_manual(conn, text: str | None = None, url: str | None = None, client: ht
     item = NewsItem("manual", url or "", datetime.now(timezone.utc), title, (rest.strip() or text)[:MAX_BODY], "manual")
     ids = upsert_news(conn, [item])
     if ids:
+        conn.execute("update news set owner_group=? where news_id=?", (owner_group, ids[0]))
+        conn.commit()
         return ids[0]
     h = hashlib.sha1(norm_title(title).encode()).hexdigest()
     return conn.execute("select news_id from news where hash=?", (h,)).fetchone()[0]
