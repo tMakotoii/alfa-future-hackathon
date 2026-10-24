@@ -1,0 +1,8 @@
+.venv
+.git
+data
+web/node_modules
+.superpowers
+.tools
+**/__pycache__
+.env
