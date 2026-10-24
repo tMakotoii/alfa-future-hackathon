@@ -76,6 +76,7 @@ def _client(monkeypatch, demo: str):
     from fastapi.testclient import TestClient
     from app.main import app
     monkeypatch.setenv("DEMO_MODE", demo)
+    monkeypatch.setenv("BACKGROUND", "0")
     return TestClient(app)
 
 
@@ -95,3 +96,36 @@ def client_no_demo(api_db, monkeypatch):
 def real_db_news(api_db):
     """Копия реальной БД с фикстурными новостями (своя на тест)."""
     return api_db
+
+
+FAKE_SCRIPT = {
+    "plan": [{"steps": [{"tool": "search_bank_analytics", "args": {"query": "ключевая ставка"}, "why": "банк"}]}],
+    "check": [{"problems": []}],
+    "classify": [{"is_business": True, "topics": ["monetary_policy"], "okved2": ["41"],
+                  "factors": [{"name": "rate", "direction": "up"}], "regions": ["RU"], "entities": ["ЦБ"],
+                  "facts": [{"text": "ЦБ поднял ставку до 16%", "confirmed": True}], "sentiment": "negative"}],
+    "chat": [{"claims": [{"text": "Лизинг подорожает", "origin": "ai", "source_ids": ["f:products.leasing"]}]}],
+}
+
+
+def _fake_factory(delay=0.0):
+    from tests.factories import good_insight_for
+    from tests.fakes import FakeLLM
+    script = {**FAKE_SCRIPT, "synthesize": [good_insight_for()]}
+    return lambda conn: FakeLLM(script, conn=conn, delay=delay)
+
+
+@pytest.fixture
+def client_fake_llm(client):
+    client.app.state.llm_factory = _fake_factory()
+    yield client
+    from app import jobs
+    jobs.wait_idle(20)
+
+
+@pytest.fixture
+def client_slow_llm(client):
+    client.app.state.llm_factory = _fake_factory(delay=1.0)
+    yield client
+    from app import jobs
+    jobs.wait_idle(20)

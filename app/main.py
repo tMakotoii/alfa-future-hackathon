@@ -1,12 +1,19 @@
 import json
+import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
+from app import jobs
 from app.api import demo_mode, router
 from app.db import connect, init_schema
 from app.ingest import DEMO_USERS, ensure_ingested
+from app.llm import LLM, load_models
+from app.news import load_snapshot, load_sources
+
+logging.basicConfig(level=logging.INFO)
 
 
 @asynccontextmanager
@@ -16,6 +23,13 @@ async def lifespan(app: FastAPI):
     ensure_ingested(conn, Path("data"))
     conn.executemany("insert or ignore into users values (?,?,?)", DEMO_USERS)
     conn.commit()
+    models = load_models()
+    if not hasattr(app.state, "llm_factory"):
+        app.state.llm_factory = lambda c: LLM(c, models)
+    if os.environ.get("BACKGROUND", "1") == "1":
+        load_snapshot(conn, Path("data/news_snapshot.jsonl"))  # лента не пустая с первой минуты
+        jobs.start_background(connect, app.state.llm_factory, load_sources(),
+                              float(os.environ.get("DAILY_BUDGET_RUB", 500)))
     conn.close()
     yield
 

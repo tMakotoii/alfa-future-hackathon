@@ -59,3 +59,20 @@ def test_sensitivity_default_for_unknown_okved():
     assert sensitivity(s, "99", "rate") == s["default"]["rate"]
     assert sensitivity(s, "41", "rate") < 0  # стройка страдает от роста ставки
     assert set(s["factors"]) >= {"rate", "fx", "consumer_demand", "sanctions"}
+
+
+def test_classify_pending_stops_after_repeated_llm_errors(db_news):
+    from app.llm import LLMError
+    from app.news import NewsItem, upsert_news
+
+    upsert_news(db_news, [NewsItem("x", f"u{i}", datetime.now(timezone.utc), f"Новость номер {i} про рынок {i * 7}", "", "rss")
+                          for i in range(6)])
+
+    class Down:
+        calls = 0
+
+        def chat(self, *a, **k):
+            Down.calls += 1
+            raise LLMError("down")
+
+    assert classify_pending(db_news, Down()) == 0 and Down.calls == 3
