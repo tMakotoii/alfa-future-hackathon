@@ -60,3 +60,18 @@ def debug_news(limit: int = 50):
     rows = connect().execute("select news_id, source, published_at, title, classification from news "
                              "order by published_at desc limit ?", (limit,)).fetchall()
     return [{**dict(r), "classification": json.loads(r["classification"]) if r["classification"] else None} for r in rows]
+
+
+DIST = Path("web/dist").resolve()
+if DIST.exists():  # собранный фронтенд: статика + SPA-fallback на index.html
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/assets", StaticFiles(directory=DIST / "assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str):
+        if path.startswith("api/"):
+            raise HTTPException(404)
+        f = (DIST / path).resolve()
+        return FileResponse(f if f.is_file() and f.is_relative_to(DIST) else DIST / "index.html")

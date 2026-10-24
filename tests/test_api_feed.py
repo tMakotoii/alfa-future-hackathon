@@ -55,3 +55,9 @@ def test_switch_forbidden_without_demo_mode(client_no_demo):
     login(client_no_demo, "opt-cfo")
     assert client_no_demo.post("/api/demo/switch", json={"group_id": "group_134409_sb"}).status_code == 403
     assert client_no_demo.get("/api/demo/groups").status_code == 403
+
+
+def test_logout_clears_session(client):
+    login(client, "opt-cfo")
+    assert client.post("/api/logout").status_code == 200
+    assert client.get("/api/me").status_code == 401

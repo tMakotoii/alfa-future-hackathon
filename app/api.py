@@ -74,6 +74,12 @@ def login(body: LoginIn, response: Response, conn=Depends(get_conn)):
     return user
 
 
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("session")
+    return {"ok": True}
+
+
 @router.get("/me")
 def me(user=Depends(current_user), conn=Depends(get_conn)):
     p = _profile(conn, user["group_id"])
