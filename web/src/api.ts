@@ -45,6 +45,11 @@ export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message) }
 }
 
+// сессия истекла (например, сервер перезапущен со случайным секретом) — на вход, а не устаревший экран
+function onUnauthorized(status: number) {
+  if (status === 401 && location.pathname !== '/login') location.assign('/login')
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const r = await fetch(path, {
     credentials: 'same-origin',
@@ -52,6 +57,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
     headers: init?.body ? { 'Content-Type': 'application/json', ...init?.headers } : init?.headers,
   })
   if (!r.ok) {
+    onUnauthorized(r.status)
     let detail = r.statusText
     try { const j = await r.json(); detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail) } catch { /* not json */ }
     throw new ApiError(r.status, detail)
@@ -71,7 +77,10 @@ export const api = {
   insight: async (newsId: string): Promise<{ pending: true; trace_id: string } | { pending: false; insight: Insight }> => {
     const r = await fetch(`/api/insights/${newsId}`, { credentials: 'same-origin' })
     if (r.status === 202) return { pending: true, trace_id: (await r.json()).trace_id }
-    if (!r.ok) throw new ApiError(r.status, (await r.json().catch(() => ({}))).detail ?? r.statusText)
+    if (!r.ok) {
+      onUnauthorized(r.status)
+      throw new ApiError(r.status, (await r.json().catch(() => ({}))).detail ?? r.statusText)
+    }
     return { pending: false, insight: await r.json() }
   },
   trace: (id: string) => req<TraceStep[]>(`/api/traces/${id}`),

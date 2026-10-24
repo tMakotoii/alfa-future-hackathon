@@ -18,7 +18,7 @@ def test_i1_group_name_is_not_unmasked(real_db_news):
     ctx = Ctx(real_db_news, None, G, "fx01", Trace(real_db_news, "a1"))
     ctx.gathered.append({"source_id": "f:x", "kind": "client_data", "ref": "", "payload": {"uid": "U_123"}})
     aliases = ctx.aliases()
-    assert G not in aliases and aliases == {"U_123": "Компания-1"}
+    assert G not in aliases and aliases == {"U_123": "ORG-1"}
 
 
 class TxProbe(FakeLLM):
@@ -120,3 +120,13 @@ def test_insight_sources_are_only_cited_ones(real_db_news):
     ins = _build(ctx, data)
     assert {s.id for s in ins.sources} == {"fx01", "f:products.leasing"}
     assert any(p.code == "unknown_source" for p in check_invariants(ins))
+
+
+def test_company_alias_survives_russian_declension(real_db_news):
+    from app.llm import _replace
+    ctx = Ctx(real_db_news, None, G, "fx01", Trace(real_db_news, "a-decl"))
+    ctx.gathered.append({"source_id": "f:x", "kind": "client_data", "ref": "", "payload": {"uid": "U_123"}})
+    alias = ctx.aliases()["U_123"]
+    # модель склоняет русское слово («Компании-1»), и обратная подстановка его не находит
+    declined = f"вклад {alias.replace('Компания', 'Компании')} в выручку"
+    assert _replace(declined, {alias: "U_123"}) == "вклад U_123 в выручку"

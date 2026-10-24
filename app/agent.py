@@ -58,7 +58,7 @@ class Ctx:
     def aliases(self) -> dict[str, str]:
         uids = sorted(set(re.findall(r"U_\d+", json.dumps([g["payload"] for g in self.gathered]))))
         # группа и так видна модели под публичным псевдонимом; маскируем только идентификаторы компаний
-        return {u: f"Компания-{i + 1}" for i, u in enumerate(uids)}
+        return {u: f"ORG-{i + 1}" for i, u in enumerate(uids)}  # латиница: «Компания-1» модель склоняет
 
     def llm_call(self, purpose: str, messages: list[dict], name: str | None = None):
         t0 = time.monotonic()

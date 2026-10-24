@@ -2,6 +2,9 @@ services:
   app:
     build: .
     env_file: .env
+    environment:
+      # из командной строки важнее .env: DAILY_BUDGET_RUB=0.01 docker compose up -d
+      DAILY_BUDGET_RUB: ${DAILY_BUDGET_RUB:-500}
     ports:
       - "8000:8000"
     volumes:
