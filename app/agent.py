@@ -146,7 +146,11 @@ def _build(ctx: Ctx, data: dict) -> Insight:
             "news_id": ctx.news_id, "trace_id": ctx.trace.trace_id, "relevance": _relevance(ctx),
             "sources": [s.model_dump() for s in ctx.sources()]}
     data.setdefault("event", {"title": ctx.news["title"], "facts": []})
-    return Insight.model_validate(data)
+    ins = Insight.model_validate(data)
+    # в карточке — только процитированные источники (+ сама новость); весь сбор виден в трассе
+    cited = {s for c in ins.event.facts + ins.why_it_matters + ins.impacts + ins.bank_view.items for s in c.source_ids}
+    ins.sources = [s for s in ins.sources if s.id in cited or s.id == ctx.news_id]
+    return ins
 
 
 def _synthesize(ctx: Ctx, revise: tuple[dict, list[str]] | None = None) -> Insight:

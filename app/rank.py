@@ -13,6 +13,12 @@ from app.sectors import load_sectors, sensitivity
 
 PRODUCT_RU = {"credit": "кредиты", "leasing": "лизинг", "deposit": "депозиты", "guarantee": "гарантии",
               "factoring": "факторинг", "fts": "ВЭД", "payroll": "ЗП-проект", "rko": "РКО"}
+FACTOR_RU = {"rate": "Ключевая ставка", "inflation": "Инфляция", "fx": "Курс рубля", "commodities:oil": "Цены на нефть",
+             "commodities:metals": "Цены на металлы", "commodities:grain": "Цены на зерно", "commodities:gold": "Цены на золото",
+             "consumer_demand": "Потребительский спрос", "gov_orders": "Госзаказ", "regulation:tax": "Налоги",
+             "regulation:customs": "Пошлины и таможня", "regulation:construction": "Регулирование стройки и ипотеки",
+             "regulation:auto": "Регулирование авторынка", "sanctions": "Санкции", "logistics": "Логистика",
+             "labor": "Рынок труда"}
 DIR_SIGN = {"up": 1, "down": -1, "flat": 0, "unknown": 0}
 
 
@@ -72,7 +78,9 @@ def score_news(classification: dict, published_at: datetime, profile: dict, role
         if c > best[0]:
             best = (c, fac, sens)
     if best[1]:
-        comps.append(("macro", best[0], f"фактор {best[1]}: чувствительность отраслей группы {best[2]:+.2f}"
+        power = "сильно" if abs(best[2]) >= 0.6 else "заметно" if abs(best[2]) >= 0.3 else "слабо"
+        comps.append(("macro", best[0], f"{FACTOR_RU.get(best[1], best[1])}: {power} влияет на отрасли группы "
+                      f"(чувствительность {best[2]:+.2f})"
                       + ("" if mix else " (по умолчанию, нет данных об отраслях)")))
     else:
         comps.append(("macro", 0.0, "в новости нет макрофакторов"))
@@ -89,7 +97,7 @@ def score_news(classification: dict, published_at: datetime, profile: dict, role
                 c = min(1.0, math.sqrt(share)) * _mult(roles.get("factors", {}), fac) \
                     * _mult(roles.get("products", {}), prod)
                 if c > pbest[0]:
-                    pbest = (c, f"{fac} → {PRODUCT_RU.get(prod, prod)}: {n} участник(ов), "
+                    pbest = (c, f"{FACTOR_RU.get(fac, fac)} → {PRODUCT_RU.get(prod, prod)}: {n} компаний группы, "
                                 f"{_pct(share)} выручки группы")
     if not products:
         comps.append(("products", 0.0, "нет данных: продукты группы"))

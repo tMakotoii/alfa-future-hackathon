@@ -104,3 +104,19 @@ def test_chat_prompt_has_profile_summary(real_db_news):
     run_chat(real_db_news, llm, ins.insight_id, "opt-cfo", "лизинг?", "t-rv-prof")
     user_msg = llm.last_messages[-1]["content"]
     assert "Профиль группы:" in user_msg and "Продукты банка:" in user_msg
+
+
+def test_insight_sources_are_only_cited_ones(real_db_news):
+    from app.agent import _build
+    from app.schemas import check_invariants
+    ctx = Ctx(real_db_news, None, G, "fx01", Trace(real_db_news, "t-src"))
+    for sid, kind in [("fx01", "news"), ("f:products.leasing", "client_data"), ("b:steel#p1", "bank_analytics")]:
+        ctx.gathered.append({"source_id": sid, "kind": kind, "ref": sid, "payload": {}})
+    data = good_insight_for(G, "fx01")
+    data["impacts"][0]["source_ids"] = ["f:products.leasing"]
+    data["impacts"][0]["origin"] = "ai"
+    data["bank_view"] = {"available": False, "items": []}
+    data["why_it_matters"][1]["source_ids"] = ["f:not_gathered"]
+    ins = _build(ctx, data)
+    assert {s.id for s in ins.sources} == {"fx01", "f:products.leasing"}
+    assert any(p.code == "unknown_source" for p in check_invariants(ins))

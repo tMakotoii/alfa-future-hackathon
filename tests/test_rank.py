@@ -58,3 +58,14 @@ def test_cfo_and_treasurer_feeds_differ(real_db):
     cfo = [x["news_id"] for x in rank_feed_on_fixture(real_db, "group_134402_sb", "CFO")[:5]]
     tr = [x["news_id"] for x in rank_feed_on_fixture(real_db, "group_134402_sb", "TREASURER")[:5]]
     assert cfo != tr
+
+
+def test_evidence_is_human_readable():
+    profile = {"features": {"sector_mix": {"value": [{"okved2": "41", "share": 1.0}]},
+                            "products": {"value": {"credit": {"n": 3, "revenue_share": 0.5}}},
+                            "counterparty_mix": {"value": {"out": [], "in": []}}, "regions": {"value": []}}}
+    cls = {"okved2": [], "regions": ["RU"], "factors": [{"name": "rate", "direction": "up"}]}
+    s = score_news(cls, NOW, profile, "CFO", load_ranking(), load_sectors(), False, NOW)
+    ev = {c.name: c.evidence for c in s.components}
+    assert ev["macro"].startswith("Ключевая ставка") and "rate" not in ev["macro"]
+    assert ev["products"].startswith("Ключевая ставка → кредиты") and "rate" not in ev["products"]
