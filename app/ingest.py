@@ -1,5 +1,7 @@
 """CSV кейса → таблицы companies / groups (+profile) / counterparties."""
 import json
+import re
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -174,10 +176,82 @@ def ingest_clients(conn, data_dir: Path) -> None:
     conn.commit()
 
 
-def ensure_ingested(conn, data_dir: Path) -> None:
+BANK_DOCS = {
+    "alfa-macro_insights-policy_rate_11sep": ("Ключевая ставка ЦБ РФ: ставка без изменения на 14,0%", date(2026, 9, 11)),
+    "бонд_бриф_14092026": ("Бонд Бриф", date(2026, 9, 14)),
+    "fi_strategy_3q26_22072026": ("Стратегия на долговом рынке, 3К26", date(2026, 7, 22)),
+    "alfa_russian_steels_1к21previewupdate_15apr2021": ("Российские сталелитейщики: превью 1К21", date(2021, 4, 15)),
+    "gold_digest_august26": ("Дайджест рынка золота, август 2026", date(2026, 8, 31)),
+    "alfa-7m26": ("Макростатистика 7М26", date(2026, 9, 7)),
+    "alfa-macro_stat1h26": ("Макростатистика 1П26", date(2026, 7, 31)),
+    "alfa-consumption": ("Потребление на пике", date(2026, 8, 5)),
+    "inflation_tracker_02": ("Инфляция 25–31 августа: основные выводы", date(2026, 9, 2)),
+}
+STALE_DAYS = 180
+MAX_CHUNK = 1600
+TARGET_CHUNK = 800
+
+
+def _split(text: str) -> list[str]:
+    if len(text) <= MAX_CHUNK:
+        return [text]
+    parts, cur = [], ""
+    for para in re.split(r"\n\s*\n", text):
+        while len(para) > TARGET_CHUNK:  # слишком длинный абзац — режем жёстко
+            parts.append(para[:TARGET_CHUNK])
+            para = para[TARGET_CHUNK:]
+        if cur and len(cur) + len(para) + 2 > TARGET_CHUNK:
+            parts.append(cur)
+            cur = ""
+        cur = f"{cur}\n\n{para}" if cur else para
+    if cur:
+        parts.append(cur)
+    return parts
+
+
+def ingest_bank(conn, corpus_path: Path, today: date | None = None) -> None:
+    today = today or date.today()
+    rows = []
+    for line in Path(corpus_path).read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        title, d = BANK_DOCS.get(r["doc_id"], (r["doc_id"], None))
+        stale = int(d is None or d < today - timedelta(days=STALE_DAYS))
+        for i, chunk in enumerate(_split(r["text"])):
+            cid = f"{r['doc_id']}#p{r['page']}" + (f"-{i}" if i else "")
+            rows.append((cid, r["doc_id"], title, d.isoformat() if d else None, r["page"], chunk, stale))
+    conn.executemany("insert or ignore into bank_chunks values (?,?,?,?,?,?,?)", rows)
+    conn.commit()
+
+
+def fts_query(text: str) -> str:
+    """Свободный текст → безопасный FTS5-запрос: слова через OR, грубый стемминг префиксом."""
+    terms = []
+    for w in dict.fromkeys(re.findall(r"\w+", text.lower())):
+        if w.isdigit():
+            terms.append(f'"{w}"')
+        elif len(w) >= 3:
+            # ponytail: префикс 5 символов вместо морфологии; заменить на pymorphy, если поиск промахивается
+            terms.append(f'"{w[:5]}"*' if len(w) > 5 else f'"{w}"*')
+    return " OR ".join(terms)
+
+
+def search_bank(conn, query: str, k: int = 5) -> list[dict]:
+    q = fts_query(query)
+    if not q:
+        return []
+    rows = conn.execute(
+        "select c.*, bm25(bank_fts) as rank from bank_fts join bank_chunks c on c.rowid = bank_fts.rowid "
+        "where bank_fts match ? order by rank limit ?", (q, k)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def ensure_ingested(conn, data_root: Path = Path("data")) -> None:
+    data_root = Path(data_root)
+    if not conn.execute("select 1 from bank_chunks limit 1").fetchone():
+        ingest_bank(conn, data_root / "ocr" / "corpus.jsonl")
     if conn.execute("select 1 from groups limit 1").fetchone():
         return
-    data_dir = Path(data_dir)
-    if not (data_dir / "df_Uid_data_hack.csv").exists():
+    clients = data_root / "Классы данных для решения задачи"
+    if not (clients / "df_Uid_data_hack.csv").exists():
         raise RuntimeError("Положите данные кейса в data/Классы данных для решения задачи/")
-    ingest_clients(conn, data_dir)
+    ingest_clients(conn, clients)

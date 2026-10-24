@@ -15,3 +15,13 @@ def db(tmp_path):
     init_schema(conn)
     ingest_clients(conn, FIXTURES / "clients")
     return conn
+
+
+@pytest.fixture
+def db_with_bank(tmp_path):
+    from datetime import date
+    from app.ingest import ingest_bank
+    conn = connect(str(tmp_path / "b.db"))
+    init_schema(conn)
+    ingest_bank(conn, Path("data/ocr/corpus.jsonl"), today=date(2026, 10, 24))
+    return conn
