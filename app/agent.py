@@ -288,7 +288,8 @@ def run_chat(conn, llm, insight_id: str, login: str, question: str, trace_id: st
     steps = (plan.data or {}).get("steps", [])
     ctx.execute([s for s in steps[:3] if isinstance(s, dict)] if isinstance(steps, list) else [])
     msgs = [{"role": "system", "content": prompts.fmt(prompts.CHAT)},
-            {"role": "user", "content": f"Новость:\n{ctx.news_text()}\n\nИнсайт: {insight_brief}\n\n"
+            {"role": "user", "content": f"Новость:\n{ctx.news_text()}\n\nПрофиль группы:\n{profile_summary(ctx.profile)}\n\n"
+                                        f"Инсайт: {insight_brief}\n\n"
                                         f"Контекст:\n{ctx.context_text()}\n\nВопрос: {q}"}]
     try:
         ans = ChatAnswer.model_validate(ctx.llm_call("chat", msgs).data or {"claims": []})

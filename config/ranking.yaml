@@ -5,8 +5,8 @@ half_life_days: 3
 # Множители роли: по факторам новости, по продуктам и по компонентам.
 role_multipliers:
   CEO: {components: {sector: 1.5}, factors: {"regulation:*": 1.5}}
-  CFO: {factors: {rate: 1.5, fx: 1.5}}
-  TREASURER: {factors: {rate: 1.5, fx: 1.5}, products: {deposit: 1.5}}
+  CFO: {factors: {rate: 1.5, "regulation:tax": 1.5, inflation: 1.3}, products: {credit: 1.3, leasing: 1.3}}
+  TREASURER: {factors: {fx: 1.8, sanctions: 1.5, "regulation:customs": 1.4, rate: 1.1}, products: {deposit: 1.5, fts: 1.5}}
 # Какие продукты группы чувствительны к фактору.
 product_map:
   rate: [credit, leasing, deposit, guarantee, factoring]

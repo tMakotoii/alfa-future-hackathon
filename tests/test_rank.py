@@ -52,3 +52,9 @@ def test_freshness_decays():
     old = score_news(cls, datetime(2026, 10, 18, tzinfo=timezone.utc), EMPTY_PROFILE, "CFO", load_ranking(),
                      load_sectors(), False, NOW)
     assert old.value < fresh.value
+
+
+def test_cfo_and_treasurer_feeds_differ(real_db):
+    cfo = [x["news_id"] for x in rank_feed_on_fixture(real_db, "group_134402_sb", "CFO")[:5]]
+    tr = [x["news_id"] for x in rank_feed_on_fixture(real_db, "group_134402_sb", "TREASURER")[:5]]
+    assert cfo != tr

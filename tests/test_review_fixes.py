@@ -96,3 +96,11 @@ def test_chat_bank_label_on_client_data_becomes_fact(real_db_news):
         {"text": "Без источника", "origin": "bank", "source_ids": []}]}]})
     claims = run_chat(real_db_news, llm, ins.insight_id, "opt-cfo", "лизинг?", "t-rv-bank").claims
     assert [(c.text, c.origin) for c in claims] == [("У группы 34 компании с лизингом", "fact")]
+
+
+def test_chat_prompt_has_profile_summary(real_db_news):
+    ins = _insight(real_db_news)
+    llm = FakeLLM({"plan": [{"steps": []}], "chat": [{"claims": []}]})
+    run_chat(real_db_news, llm, ins.insight_id, "opt-cfo", "лизинг?", "t-rv-prof")
+    user_msg = llm.last_messages[-1]["content"]
+    assert "Профиль группы:" in user_msg and "Продукты банка:" in user_msg
