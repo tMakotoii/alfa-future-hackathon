@@ -89,3 +89,9 @@ def client(api_db, monkeypatch):
 def client_no_demo(api_db, monkeypatch):
     with _client(monkeypatch, "0") as c:
         yield c
+
+
+@pytest.fixture
+def real_db_news(api_db):
+    """Копия реальной БД с фикстурными новостями (своя на тест)."""
+    return api_db

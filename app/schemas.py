@@ -115,6 +115,7 @@ class Insight(BaseModel):
 
 class ChatAnswer(BaseModel):
     claims: list[Claim]
+    sources: list[Source] = []
 
 
 @dataclass
