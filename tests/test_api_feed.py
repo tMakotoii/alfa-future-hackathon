@@ -1,3 +1,5 @@
+import pytest
+
 def login(client, name):
     assert client.post("/api/login", json={"login": name}).status_code == 200
 
@@ -68,3 +70,21 @@ def test_metrics_endpoint(client):
     login(client, "opt-cfo")
     m = client.get("/api/metrics").json()
     assert {"groundedness", "cost_today_rub", "budget_level", "feedback"} <= m.keys()
+
+
+def test_no_unauthenticated_debug_endpoints(client):
+    assert client.get("/api/debug/news").status_code == 404
+    assert client.get("/api/debug/profile/group_134402_sb").status_code == 404
+
+
+@pytest.mark.parametrize("secret", ["change-me", "dev-secret", None])
+def test_known_default_secret_does_not_sign_sessions(client, monkeypatch, secret):
+    from itsdangerous import URLSafeSerializer
+    if secret:
+        monkeypatch.setenv("SESSION_SECRET", secret)
+    else:
+        monkeypatch.delenv("SESSION_SECRET", raising=False)
+    forged = URLSafeSerializer(secret or "dev-secret", salt="session").dumps(
+        {"login": "opt-cfo", "group_id": "group_134402_sb", "role": "CFO"})
+    client.cookies.set("session", forged)
+    assert client.get("/api/feed").status_code == 401

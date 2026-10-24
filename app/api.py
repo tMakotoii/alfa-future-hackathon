@@ -2,6 +2,7 @@
 import asyncio
 import json
 import os
+import secrets
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -26,8 +27,14 @@ def demo_mode() -> bool:
     return os.environ.get("DEMO_MODE", "1") == "1"
 
 
+_KNOWN_SECRETS = {"", "change-me", "dev-secret"}
+_RANDOM_SECRET = secrets.token_hex(32)
+
+
 def _serializer() -> URLSafeSerializer:
-    return URLSafeSerializer(os.environ.get("SESSION_SECRET", "dev-secret"), salt="session")
+    # известный секрет из примера позволил бы подделать cookie — тогда случайный на процесс (вход сбросится при рестарте)
+    secret = os.environ.get("SESSION_SECRET", "")
+    return URLSafeSerializer(_RANDOM_SECRET if secret in _KNOWN_SECRETS else secret, salt="session")
 
 
 def get_conn():
