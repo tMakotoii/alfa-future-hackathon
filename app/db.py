@@ -57,6 +57,7 @@ create table if not exists llm_cache (key text primary key, response text);
 create table if not exists feedback (
     insight_id text, login text, verdict text, reason text, comment text, ts text default (datetime('now'))
 );
+create table if not exists eval_runs (ts text default (datetime('now')), payload text);
 create table if not exists chat_messages (
     insight_id text, login text, role text, content text, trace_id text, ts text default (datetime('now'))
 );

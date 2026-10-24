@@ -14,6 +14,7 @@ from app.agent import new_trace_id, run_chat
 from app.classify import classify_news
 from app.db import connect
 from app.llm import BudgetExhausted, LLMError
+from app.metrics import compute_metrics
 from app.news import add_manual
 from app.rank import rank_feed
 
@@ -305,3 +306,8 @@ def source_bank(doc_id: str, page: int, user=Depends(current_user), conn=Depends
         raise HTTPException(404, "Страница не найдена")
     return {"doc_id": doc_id, "page": page, "doc_title": rows[0]["doc_title"], "doc_date": rows[0]["doc_date"],
             "stale": bool(rows[0]["stale"]), "text": "\n\n".join(r["text"] for r in rows)}
+
+
+@router.get("/metrics")
+def metrics(user=Depends(current_user), conn=Depends(get_conn)):
+    return compute_metrics(conn)

@@ -61,3 +61,10 @@ def test_logout_clears_session(client):
     login(client, "opt-cfo")
     assert client.post("/api/logout").status_code == 200
     assert client.get("/api/me").status_code == 401
+
+
+def test_metrics_endpoint(client):
+    assert client.get("/api/metrics").status_code == 401
+    login(client, "opt-cfo")
+    m = client.get("/api/metrics").json()
+    assert {"groundedness", "cost_today_rub", "budget_level", "feedback"} <= m.keys()
