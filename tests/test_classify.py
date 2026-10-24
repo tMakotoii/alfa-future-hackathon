@@ -76,3 +76,8 @@ def test_classify_pending_stops_after_repeated_llm_errors(db_news):
             raise LLMError("down")
 
     assert classify_pending(db_news, Down()) == 0 and Down.calls == 3
+
+
+def test_okved_ints_from_model_coerced():
+    from app.schemas import Classification
+    assert Classification.model_validate({"okved2": [25, 1, "41.2"]}).okved2 == ["25", "01", "41.2"]

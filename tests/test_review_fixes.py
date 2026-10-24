@@ -86,3 +86,13 @@ def test_i5_user_request_not_queued_behind_background(api_db, monkeypatch):
 def test_i6_malformed_url_is_value_error(real_db_news, url):
     with pytest.raises(ValueError):
         add_manual(real_db_news, url=url)
+
+
+def test_chat_bank_label_on_client_data_becomes_fact(real_db_news):
+    ins = _insight(real_db_news)
+    nb = next(s.id for s in ins.sources if not s.id.startswith("b:"))
+    llm = FakeLLM({"plan": [{"steps": []}], "chat": [{"claims": [
+        {"text": "У группы 34 компании с лизингом", "origin": "bank", "source_ids": [nb]},
+        {"text": "Без источника", "origin": "bank", "source_ids": []}]}]})
+    claims = run_chat(real_db_news, llm, ins.insight_id, "opt-cfo", "лизинг?", "t-rv-bank").claims
+    assert [(c.text, c.origin) for c in claims] == [("У группы 34 компании с лизингом", "fact")]

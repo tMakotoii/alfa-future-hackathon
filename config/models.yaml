@@ -1,19 +1,22 @@
 # Идентификаторы моделей в API организаторов; при несовпадении поменять здесь.
 purposes:
-  classify:   {model: gemma-4-26b-a4b, fallback: qwen3.6-35b-a3b}
-  check:      {model: gemma-4-26b-a4b, fallback: qwen3.6-35b-a3b}
-  plan:       {model: qwen3.6-35b-a3b, fallback: gemma-4-26b-a4b}
-  chat:       {model: qwen3.6-35b-a3b, fallback: gemma-4-26b-a4b}
-  synthesize: {model: glm-5.3-flash, fallback: qwen3.6-35b-a3b}
-  sectors:    {model: deepseek-v4.1-flash, fallback: qwen3.6-35b-a3b}
-# ₽ за 1000 токенов. TODO: прайс организаторов (сейчас — консервативная оценка)
+  classify:   {model: google/gemma-4-26b-a4b-it, fallback: qwen/qwen3.6-35b-a3b}
+  check:      {model: google/gemma-4-26b-a4b-it, fallback: qwen/qwen3.6-35b-a3b}
+  plan:       {model: qwen/qwen3.6-35b-a3b, fallback: google/gemma-4-26b-a4b-it}
+  chat:       {model: qwen/qwen3.6-35b-a3b, fallback: google/gemma-4-26b-a4b-it}
+  synthesize: {model: z-ai/glm-5.3-flash, fallback: qwen/qwen3.6-35b-a3b}
+  sectors:    {model: deepseek/deepseek-v4.1-flash, fallback: qwen/qwen3.6-35b-a3b}
+# ₽ за 1000 токенов — запасной расчёт; шлюз организаторов присылает фактический usage.cost
 prices_rub_per_1k:
-  gemma-4-26b-a4b:     {in: 0.02, out: 0.06}
-  qwen3.6-35b-a3b:     {in: 0.03, out: 0.10}
-  glm-5.3-flash:       {in: 0.05, out: 0.20}
-  deepseek-v4.1-flash: {in: 0.03, out: 0.10}
-  kimi-k2.6:           {in: 0.08, out: 0.30}
+  "google/gemma-4-26b-a4b-it":     {in: 0.02, out: 0.06}
+  "qwen/qwen3.6-35b-a3b":     {in: 0.03, out: 0.10}
+  "z-ai/glm-5.3-flash":       {in: 0.05, out: 0.20}
+  "deepseek/deepseek-v4.1-flash": {in: 0.03, out: 0.10}
+  "moonshotai/kimi-k2.6":           {in: 0.08, out: 0.30}
 timeout_s: 60
 retries: 2
 backoff_s: [1, 2]
 response_format_json: true
+# доп. поля тела запроса: рассуждения у Qwen/GLM/DeepSeek дороже ответа в 5–15 раз и медленнее в ~3–9 раз
+extra_body:
+  reasoning: {enabled: false}

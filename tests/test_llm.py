@@ -65,7 +65,7 @@ def test_invalid_json_retries_then_fallback(conn):
     primary = CFG["purposes"]["synthesize"]["model"]
     llm = make(conn, lambda m, b: (200, "не json") if m == primary else (200, '{"ok": true}'))
     r = llm.chat("synthesize", [{"role": "user", "content": "x"}])
-    assert r.model == "qwen3.6-35b-a3b" and r.data == {"ok": True}
+    assert r.model == "qwen/qwen3.6-35b-a3b" and r.data == {"ok": True}
     assert llm.transport.calls == 3  # основная + ретрай JSON + fallback
 
 
@@ -103,3 +103,18 @@ def test_masking_roundtrip(conn):
                  aliases={"group_134402_sb": "Группа А"})
     assert llm.transport.last_body_contains("Группа А") and not llm.transport.last_body_contains("group_134402_sb")
     assert r.text == "group_134402_sb"
+
+
+def test_extra_body_from_config_sent(conn):
+    llm = LLM(conn, {**CFG, "extra_body": {"reasoning": {"enabled": False}}}, transport=Transport(lambda m, b: (200, '{"x": 1}')))
+    llm.chat("classify", [{"role": "user", "content": "x"}])
+    assert llm.client._transport.bodies[-1]["reasoning"] == {"enabled": False}
+
+
+def test_gateway_cost_preferred_over_price_table(conn):
+    def h(request):
+        return httpx.Response(200, json={"choices": [{"message": {"content": '{"x": 1}'}}],
+                                         "usage": {"prompt_tokens": 100, "completion_tokens": 50, "cost": 0.42}})
+    r = LLM(conn, CFG, transport=httpx.MockTransport(h)).chat("classify", [{"role": "user", "content": "x"}])
+    assert r.cost_rub == 0.42
+    assert conn.execute("select cost_rub from llm_calls").fetchone()[0] == 0.42

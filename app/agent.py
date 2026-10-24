@@ -173,7 +173,8 @@ def _check(ctx: Ctx, ins: Insight) -> list[str]:
     try:
         claims = ins.model_dump(include={"headline", "why_it_matters", "impacts", "bank_view", "actions"})
         res = ctx.llm_call("check", [{"role": "system", "content": prompts.fmt(prompts.CHECK)},
-                                     {"role": "user", "content": f"Контекст:\n{ctx.context_text()}\n\nИнсайт:\n"
+                                     {"role": "user", "content": f"Профиль группы:\n{profile_summary(ctx.profile)}\n\n"
+                                                                 f"Контекст:\n{ctx.context_text()}\n\nИнсайт:\n"
                                                                  f"{json.dumps(claims, ensure_ascii=False)}"}],
                            name="check:llm")
         problems += [f"{p.get('field')}: {p.get('problem')}" for p in (res.data or {}).get("problems", [])
@@ -303,7 +304,9 @@ def run_chat(conn, llm, insight_id: str, login: str, question: str, trace_id: st
         for c in ans.claims:  # неизвестные источники выкидываем; «банк/факт» без источника не показываем
             c.source_ids = [s for s in c.source_ids if s in known]
             if c.origin == "bank" and not any(s.startswith("b:") for s in c.source_ids):
-                continue
+                if not c.source_ids:
+                    continue
+                c.origin = "fact"  # модель перепутала метку: ссылки на новость/данные клиента — это факт
             if c.origin == "fact" and not c.source_ids:
                 continue
             cleaned.append(c)

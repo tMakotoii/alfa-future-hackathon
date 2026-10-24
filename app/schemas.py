@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class Factor(BaseModel):
@@ -22,6 +22,11 @@ class Classification(BaseModel):
     entities: list[str] = []
     facts: list[NewsFact] = []
     sentiment: Literal["negative", "neutral", "positive"] = "neutral"
+
+    @field_validator("okved2", mode="before")
+    @classmethod
+    def _okved_as_str(cls, v):  # Gemma отдаёт коды числами: 25, 1 → "25", "01"
+        return [f"{x:02d}" if isinstance(x, int) else x for x in v] if isinstance(v, list) else v
 
 
 # ---------- Insight v1 (§3.4) ----------

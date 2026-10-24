@@ -87,8 +87,8 @@ class LLM:
                           "trace_id) values (?,?,?,?,?,?,?)", (model, purpose, pt, ct, cost, int(cache_hit), trace_id))
         self.conn.commit()
 
-    def _post(self, model: str, messages: list[dict], json_mode: bool) -> tuple[str, int, int]:
-        body = {"model": model, "messages": messages, "temperature": 0.2}
+    def _post(self, model: str, messages: list[dict], json_mode: bool) -> tuple[str, int, int, float | None]:
+        body = {"model": model, "messages": messages, "temperature": 0.2, **self.cfg.get("extra_body", {})}
         if json_mode and self.cfg.get("response_format_json"):
             body["response_format"] = {"type": "json_object"}
         backoff = self.cfg.get("backoff_s", [1, 2])
@@ -99,7 +99,8 @@ class LLM:
                     r.raise_for_status()
                     j = r.json()
                     u = j.get("usage") or {}
-                    return j["choices"][0]["message"]["content"] or "", u.get("prompt_tokens", 0), u.get("completion_tokens", 0)
+                    return (j["choices"][0]["message"]["content"] or "", u.get("prompt_tokens", 0),
+                            u.get("completion_tokens", 0), u.get("cost"))
             except (httpx.TransportError, KeyError, ValueError):
                 pass
             except httpx.HTTPStatusError as e:
@@ -131,7 +132,7 @@ class LLM:
             if level == "cache_only":
                 continue
             try:
-                raw, pt, ct = self._post(model, masked, json_mode)
+                raw, pt, ct, gw_cost = self._post(model, masked, json_mode)
                 data = None
                 if json_mode:
                     try:
@@ -139,13 +140,15 @@ class LLM:
                     except ValueError:
                         retry = masked + [{"role": "assistant", "content": raw},
                                           {"role": "user", "content": "Верни только валидный JSON-объект без пояснений."}]
-                        raw, pt2, ct2 = self._post(model, retry, json_mode)
+                        raw, pt2, ct2, gw2 = self._post(model, retry, json_mode)
                         pt, ct = pt + pt2, ct + ct2
+                        gw_cost = None if gw_cost is None or gw2 is None else gw_cost + gw2
                         data = parse_json(raw)
             except (LLMError, ValueError) as e:
                 last_err = e
                 continue
-            cost = self._cost(model, pt, ct)
+            # шлюз сам считает ₽ по своему прайсу; таблица цен — только если он не прислал cost
+            cost = round(gw_cost, 6) if gw_cost is not None else self._cost(model, pt, ct)
             self.conn.execute("insert or replace into llm_cache values (?, ?)", (key, raw))
             self._log(model, purpose, pt, ct, cost, False, trace_id)
             text = _replace(raw, unmask)
