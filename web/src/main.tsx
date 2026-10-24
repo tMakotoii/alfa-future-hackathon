@@ -7,6 +7,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Feed from './pages/Feed'
+import Insight from './pages/Insight'
 
 function Protected() {
   const { me, loading } = useSession()
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<Protected />}>
             <Route path="/" element={<Home />} />
             <Route path="/feed" element={<Feed />} />
+            <Route path="/insight/:newsId" element={<Insight />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
