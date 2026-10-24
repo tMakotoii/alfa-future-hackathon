@@ -36,3 +36,12 @@ def debug_profile(group_id: str):
     if not row or not row[0]:
         raise HTTPException(404, "Группа не найдена или не целевая")
     return json.loads(row[0])
+
+
+@app.get("/api/debug/news")
+def debug_news(limit: int = 50):
+    if not DEMO_MODE:
+        raise HTTPException(404)
+    rows = connect().execute("select news_id, source, published_at, title, classification from news "
+                             "order by published_at desc limit ?", (limit,)).fetchall()
+    return [{**dict(r), "classification": json.loads(r["classification"]) if r["classification"] else None} for r in rows]
