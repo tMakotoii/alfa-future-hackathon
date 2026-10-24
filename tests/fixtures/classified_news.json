@@ -1,0 +1,644 @@
+[
+ {
+  "news_id": "fx01",
+  "title": "ЦБ сохранил ключевую ставку 14%",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "monetary_policy"
+   ],
+   "okved2": [
+    "64"
+   ],
+   "factors": [
+    {
+     "name": "rate",
+     "direction": "flat"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "ЦБ сохранил ключевую ставку 14%",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "neutral"
+  }
+ },
+ {
+  "news_id": "fx02",
+  "title": "Юань подорожал до 12 рублей",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "fx"
+   ],
+   "okved2": [
+    "46",
+    "45"
+   ],
+   "factors": [
+    {
+     "name": "fx",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Юань подорожал до 12 рублей",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx03",
+  "title": "Правительство повысило ввозные пошлины на ряд товаров",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "trade",
+    "tax"
+   ],
+   "okved2": [
+    "46",
+    "52"
+   ],
+   "factors": [
+    {
+     "name": "regulation:customs",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Правительство повысило ввозные пошлины на ряд товаров",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx04",
+  "title": "Льготную ипотеку сократят с 2027 года",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "construction"
+   ],
+   "okved2": [
+    "41",
+    "68"
+   ],
+   "factors": [
+    {
+     "name": "regulation:construction",
+     "direction": "down"
+    },
+    {
+     "name": "consumer_demand",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Льготную ипотеку сократят с 2027 года",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx05",
+  "title": "Утверждена программа строительства дорог на 2 трлн рублей",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "gov_spending"
+   ],
+   "okved2": [
+    "42",
+    "71"
+   ],
+   "factors": [
+    {
+     "name": "gov_orders",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Утверждена программа строительства дорог на 2 трлн рублей",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx06",
+  "title": "Продажи новых автомобилей выросли на 20%",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "auto"
+   ],
+   "okved2": [
+    "45"
+   ],
+   "factors": [
+    {
+     "name": "consumer_demand",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Продажи новых автомобилей выросли на 20%",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx07",
+  "title": "Утильсбор на автомобили повышен с 1 января",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "auto",
+    "tax"
+   ],
+   "okved2": [
+    "45"
+   ],
+   "factors": [
+    {
+     "name": "regulation:auto",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Утильсбор на автомобили повышен с 1 января",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx08",
+  "title": "Цены на сталь упали до минимума за 3 года",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "commodities"
+   ],
+   "okved2": [
+    "24"
+   ],
+   "factors": [
+    {
+     "name": "commodities:metals",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Цены на сталь упали до минимума за 3 года",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "neutral"
+  }
+ },
+ {
+  "news_id": "fx09",
+  "title": "Нефть Brent подорожала до 90 долларов",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "commodities"
+   ],
+   "okved2": [
+    "06",
+    "49"
+   ],
+   "factors": [
+    {
+     "name": "commodities:oil",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Нефть Brent подорожала до 90 долларов",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "neutral"
+  }
+ },
+ {
+  "news_id": "fx10",
+  "title": "Льготы для IT-компаний продлены до 2030 года",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "it",
+    "tax"
+   ],
+   "okved2": [
+    "62",
+    "63"
+   ],
+   "factors": [
+    {
+     "name": "regulation:tax",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Льготы для IT-компаний продлены до 2030 года",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx11",
+  "title": "Сроки доставки грузов из Китая выросли вдвое",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "logistics"
+   ],
+   "okved2": [
+    "52",
+    "49"
+   ],
+   "factors": [
+    {
+     "name": "logistics",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Сроки доставки грузов из Китая выросли вдвое",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx12",
+  "title": "Инфляция замедлилась до 5%",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "inflation"
+   ],
+   "okved2": [],
+   "factors": [
+    {
+     "name": "inflation",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Инфляция замедлилась до 5%",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx13",
+  "title": "Цены на цемент и бетон выросли на 15% с начала года",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "construction"
+   ],
+   "okved2": [
+    "23",
+    "41",
+    "43"
+   ],
+   "factors": [
+    {
+     "name": "inflation",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Цены на цемент и бетон выросли на 15% с начала года",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx14",
+  "title": "Минстрой упростил выдачу разрешений на строительство",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "construction"
+   ],
+   "okved2": [
+    "41",
+    "71"
+   ],
+   "factors": [
+    {
+     "name": "regulation:construction",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Минстрой упростил выдачу разрешений на строительство",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx15",
+  "title": "Продажи новостроек в Москве упали на 30%",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "construction"
+   ],
+   "okved2": [
+    "41",
+    "68"
+   ],
+   "factors": [
+    {
+     "name": "consumer_demand",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Продажи новостроек в Москве упали на 30%",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx16",
+  "title": "Китайские автобренды снизили цены на 10%",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "auto"
+   ],
+   "okved2": [
+    "45"
+   ],
+   "factors": [
+    {
+     "name": "consumer_demand",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Китайские автобренды снизили цены на 10%",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "neutral"
+  }
+ },
+ {
+  "news_id": "fx17",
+  "title": "Выдачи автокредитов выросли на четверть",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "auto",
+    "finance_markets"
+   ],
+   "okved2": [
+    "45",
+    "64"
+   ],
+   "factors": [
+    {
+     "name": "consumer_demand",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Выдачи автокредитов выросли на четверть",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "positive"
+  }
+ },
+ {
+  "news_id": "fx18",
+  "title": "Маркетплейсы ужесточили требования к оптовым поставщикам",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "retail"
+   ],
+   "okved2": [
+    "46",
+    "47"
+   ],
+   "factors": [
+    {
+     "name": "regulation:tax",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Маркетплейсы ужесточили требования к оптовым поставщикам",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx19",
+  "title": "ФТС усилила проверки импортных поставок",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "trade"
+   ],
+   "okved2": [
+    "46",
+    "52"
+   ],
+   "factors": [
+    {
+     "name": "regulation:customs",
+     "direction": "up"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "ФТС усилила проверки импортных поставок",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "negative"
+  }
+ },
+ {
+  "news_id": "fx20",
+  "title": "Оптовые цены на стройматериалы снизились",
+  "source": "fixture",
+  "classification": {
+   "is_business": true,
+   "topics": [
+    "construction",
+    "trade"
+   ],
+   "okved2": [
+    "46",
+    "23"
+   ],
+   "factors": [
+    {
+     "name": "inflation",
+     "direction": "down"
+    }
+   ],
+   "regions": [
+    "RU"
+   ],
+   "entities": [],
+   "facts": [
+    {
+     "text": "Оптовые цены на стройматериалы снизились",
+     "confirmed": true
+    }
+   ],
+   "sentiment": "neutral"
+  }
+ }
+]

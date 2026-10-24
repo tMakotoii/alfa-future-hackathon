@@ -34,3 +34,10 @@ def test_empty_group_still_has_profile(db):  # Review Focus 3
     assert p["features"]["products"]["value"]["credit"]["n"] == 0
     assert p["features"]["regions"]["value"] == []
     assert p["data_gaps"]
+
+
+def test_product_revenue_share(db):
+    prods = profile(db, "G1")["features"]["products"]["value"]
+    assert prods["leasing"]["revenue_share"] == 1.0
+    assert prods["credit"]["revenue_share"] == round(8 / 18, 4)
+    assert prods["fts"]["revenue_share"] == 1.0

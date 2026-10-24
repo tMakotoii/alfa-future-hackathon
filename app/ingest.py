@@ -70,10 +70,15 @@ def build_profile(members: pd.DataFrame, cp_out: pd.DataFrame, cp_in: pd.DataFra
     names = members.drop_duplicates("okved2").set_index("okved2").okved_name
     sector_mix = [{"okved2": d["okved2"], "name": _nn(names.get(d["okved2"])), "share": d["share"]}
                   for d in _shares(by_okved)]
-    products = {k: {"n": int(members[c].fillna(0).sum())} for k, c in PRODUCTS.items()}
+    def rev_share(mask) -> float:
+        return round(float(members.revenue[mask].sum() / rev), 4) if rev else 0.0
+
+    products = {k: {"n": int(members[c].fillna(0).sum()), "revenue_share": rev_share(members[c].fillna(0) == 1)}
+                for k, c in PRODUCTS.items()}
     fts = members[members.fts_flag.fillna(0) == 1]
     countries = sorted({c.strip().upper() for v in fts.fts_country.dropna() for c in str(v).split(",") if c.strip()})
-    products["fts"] = {"n": len(fts), "countries": countries}
+    products["fts"] = {"n": len(fts), "revenue_share": rev_share(members.fts_flag.fillna(0) == 1),
+                       "countries": countries}
     regions = members.groupby("region").revenue.sum().sort_values(ascending=False).index.tolist()
     t5o, hhio = _concentration(cp_out.amount)
     t5i, hhii = _concentration(cp_in.amount)

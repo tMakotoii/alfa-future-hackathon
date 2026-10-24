@@ -25,3 +25,12 @@ def db_with_bank(tmp_path):
     init_schema(conn)
     ingest_bank(conn, Path("data/ocr/corpus.jsonl"), today=date(2026, 10, 24))
     return conn
+
+
+@pytest.fixture(scope="session")
+def real_db(tmp_path_factory):
+    from app.ingest import ensure_ingested
+    conn = connect(str(tmp_path_factory.mktemp("real") / "r.db"))
+    init_schema(conn)
+    ensure_ingested(conn, Path("data"))
+    return conn
